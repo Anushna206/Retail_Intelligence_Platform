@@ -1,0 +1,5 @@
+CREATE OR REPLACE TABLE RETAIL_INTELLIGENCE.GOLD.FACT_STORE_RISK AS
+SELECT Store, PredictedRiskTier AS RiskTier, prob_High, prob_Medium, prob_Low
+FROM RETAIL_INTELLIGENCE.STAGING.RISK_PREDICTIONS;
+
+select * from fact_store_risk;

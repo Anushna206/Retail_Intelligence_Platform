@@ -1,0 +1,123 @@
+SHOW TABLES IN retail_intelligence.silver;
+
+DESCRIBE TABLE retail_intelligence.silver.silver_train;
+
+DESCRIBE TABLE retail_intelligence.silver.silver_test;
+
+DESCRIBE TABLE retail_intelligence.silver.silver_store;
+
+--1. row count
+SELECT
+    'silver_train' AS table_name,
+    COUNT(*) AS row_count
+FROM retail_intelligence.silver.silver_train
+
+UNION ALL
+
+SELECT
+    'silver_test',
+    COUNT(*)
+FROM retail_intelligence.silver.silver_test
+
+UNION ALL
+
+SELECT
+    'silver_store',
+    COUNT(*)
+FROM retail_intelligence.silver.silver_store; 
+
+---train null validation 
+SELECT
+    COUNT(*) AS total_rows,
+    SUM(CASE WHEN Store IS NULL THEN 1 ELSE 0 END) AS null_store,
+    SUM(CASE WHEN Date IS NULL THEN 1 ELSE 0 END) AS null_date,
+    SUM(CASE WHEN Sales IS NULL THEN 1 ELSE 0 END) AS null_sales,
+    SUM(CASE WHEN Customers IS NULL THEN 1 ELSE 0 END) AS null_customers,
+    SUM(CASE WHEN Open IS NULL THEN 1 ELSE 0 END) AS null_open,
+    SUM(CASE WHEN StoreType IS NULL THEN 1 ELSE 0 END) AS null_storetype,
+    SUM(CASE WHEN CompetitionDistance IS NULL THEN 1 ELSE 0 END) AS null_competitiondistance,
+    SUM(CASE WHEN HasCompetitionInfo IS NULL THEN 1 ELSE 0 END) AS null_hascompetitioninfo
+FROM retail_intelligence.silver.silver_train;
+
+--test null validation 
+
+SELECT
+    COUNT(*) AS total_rows,
+    SUM(CASE WHEN Id IS NULL THEN 1 ELSE 0 END) AS null_id,
+    SUM(CASE WHEN Store IS NULL THEN 1 ELSE 0 END) AS null_store,
+    SUM(CASE WHEN Date IS NULL THEN 1 ELSE 0 END) AS null_date,
+    SUM(CASE WHEN Open IS NULL THEN 1 ELSE 0 END) AS null_open,
+    SUM(CASE WHEN StoreType IS NULL THEN 1 ELSE 0 END) AS null_storetype,
+    SUM(CASE WHEN CompetitionDistance IS NULL THEN 1 ELSE 0 END) AS null_competitiondistance,
+    SUM(CASE WHEN HasCompetitionInfo IS NULL THEN 1 ELSE 0 END) AS null_hascompetitioninfo
+FROM retail_intelligence.silver.silver_test; 
+
+-- store null validation 
+SELECT
+    COUNT(*) AS total_rows,
+    SUM(CASE WHEN Store IS NULL THEN 1 ELSE 0 END) AS null_store,
+    SUM(CASE WHEN StoreType IS NULL THEN 1 ELSE 0 END) AS null_storetype,
+    SUM(CASE WHEN Assortment IS NULL THEN 1 ELSE 0 END) AS null_assortment,
+    SUM(CASE WHEN CompetitionDistance IS NULL THEN 1 ELSE 0 END) AS null_competitiondistance,
+    SUM(CASE WHEN HasCompetitionInfo IS NULL THEN 1 ELSE 0 END) AS null_hascompetitioninfo
+FROM retail_intelligence.silver.silver_store; 
+
+
+--duplication 
+-- silver_train 
+SELECT
+    Store,
+    Date,
+    COUNT(*) AS duplicate_count
+FROM retail_intelligence.silver.silver_train
+GROUP BY Store, Date
+HAVING COUNT(*) > 1;
+
+--silver_test
+SELECT
+    Id,
+    COUNT(*) AS duplicate_count
+FROM retail_intelligence.silver.silver_test
+GROUP BY Id
+HAVING COUNT(*) > 1;
+
+--silver_store
+SELECT
+    Store,
+    COUNT(*) AS duplicate_count
+FROM retail_intelligence.silver.silver_store
+GROUP BY Store
+HAVING COUNT(*) > 1; 
+
+
+--Day Of Week Validation
+SELECT
+    MIN(DayOfWeek) AS min_day,
+    MAX(DayOfWeek) AS max_day,
+    COUNT(DISTINCT DayOfWeek) AS distinct_days
+FROM retail_intelligence.silver.silver_train;
+
+-- Month Validation
+SELECT
+    MIN(Month) AS min_month,
+    MAX(Month) AS max_month
+FROM retail_intelligence.silver.silver_train;
+
+--Quarter Validation
+SELECT
+    MIN(Quarter) AS min_quarter,
+    MAX(Quarter) AS max_quarter
+FROM retail_intelligence.silver.silver_train;
+
+--Weekend Flag Validation
+SELECT
+    IsWeekend,
+    COUNT(*) AS records
+FROM retail_intelligence.silver.silver_train
+GROUP BY IsWeekend;
+
+--Competition Age Validation
+SELECT
+    MIN(CompetitionAgeMonths) AS min_age,
+    MAX(CompetitionAgeMonths) AS max_age
+FROM retail_intelligence.silver.silver_train;

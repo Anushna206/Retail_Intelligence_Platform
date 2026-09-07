@@ -1,0 +1,365 @@
+name: RETAIL_INTELLIGENCE_ANALYSIS
+tables:
+  - name: DIM_STORE
+    description: The table contains records of retail store locations and their characteristics. Each record represents a single store and includes details about the store's type, product assortment, promotional activity, and competitive landscape such as proximity to and timing of nearby competitors.
+    base_table:
+      database: RETAIL_INTELLIGENCE
+      schema: GOLD
+      table: DIM_STORE
+    dimensions:
+      - name: ASSORTMENT
+        description: The assortment tier or category classification assigned to a store.
+        expr: ASSORTMENT
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - a
+          - c
+          - b
+      - name: COMPETITIONDISTANCE
+        description: The distance to the nearest competitor store.
+        expr: COMPETITIONDISTANCE
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '2840'
+          - '1470'
+          - '1320'
+      - name: COMPETITIONOPENSINCEMONTH
+        description: The month in which a nearby competitor store opened.
+        expr: COMPETITIONOPENSINCEMONTH
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '9'
+          - '12'
+          - '11'
+      - name: COMPETITIONOPENSINCEYEAR
+        description: The year in which competition near the store first opened.
+        expr: COMPETITIONOPENSINCEYEAR
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '2007'
+          - '2010'
+          - '2006'
+      - name: HASCOMPETITIONINFO
+        description: Flag indicating whether a store has associated competition information.
+        expr: HASCOMPETITIONINFO
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '0'
+          - '1'
+      - name: PROMO2
+        description: Flag indicating whether a store participates in a secondary promotional campaign.
+        expr: PROMO2
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '0'
+          - '1'
+      - name: PROMOINTERVAL
+        description: The intervals at which promotions are restarted for a store following a reopening.
+        expr: PROMOINTERVAL
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - Jan,Apr,Jul,Oct
+          - Feb,May,Aug,Nov
+      - name: STORE
+        description: Unique numeric identifier for a store.
+        expr: STORE
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '2'
+          - '220'
+          - '71'
+      - name: STORETYPE
+        description: The type or category of a store.
+        expr: STORETYPE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - c
+          - d
+          - a
+    primary_key:
+      columns:
+        - STORE
+  - name: FACT_SALES_DAILY
+    description: The table contains daily sales records per store, including customer counts, promotion activity, and holiday flags. Each record represents a single store-day.
+    base_table:
+      database: RETAIL_INTELLIGENCE
+      schema: GOLD
+      table: FACT_SALES_DAILY
+    dimensions:
+      - name: DAYOFWEEK
+        description: The day of the week for the sales record (1=Monday through 7=Sunday).
+        expr: DAYOFWEEK
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: PROMO
+        description: Flag indicating whether a promotion was active on this day.
+        expr: PROMO
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: SCHOOLHOLIDAY
+        description: Flag indicating whether the day fell during a school holiday.
+        expr: SCHOOLHOLIDAY
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: STATEHOLIDAY
+        description: Indicates whether the day was a state holiday, and which type.
+        expr: STATEHOLIDAY
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+      - name: STORE
+        description: The unique identifier for the store.
+        expr: STORE
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+    time_dimensions:
+      - name: DATE
+        description: The calendar date of the sales record.
+        expr: DATE
+        data_type: DATE
+        access_modifier: public_access
+    facts:
+      - name: CUSTOMERS
+        description: The number of customers recorded on this day.
+        expr: CUSTOMERS
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: SALES
+        description: The total sales amount recorded on this day.
+        expr: SALES
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+  - name: FACT_SALES_MONTHLY
+    description: |
+      The table contains monthly sales records aggregated at the store level, covering both historical actuals and future forecasted months. Each record represents a store's sales figures for a given month. When a question asks for sales in a specific store/month and no ISFORECAST filter is stated, include both actual and forecasted rows so the query still returns a result for months beyond the actuals history. Only exclude forecast rows if the question explicitly says "actual" sales, and only exclude actual rows if the question explicitly says "forecast" or "predicted" sales.
+    base_table:
+      database: RETAIL_INTELLIGENCE
+      schema: GOLD
+      table: FACT_SALES_MONTHLY
+    dimensions:
+      - name: CONFIDENCETIER
+        description: The confidence tier or level associated with a monthly sales record.
+        expr: CONFIDENCETIER
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - Medium
+          - Low
+      - name: ISFORECAST
+        description: |
+          Indicates whether the monthly sales figure is a forecast (TRUE) rather than an actual recorded value (FALSE). Do not filter on this column unless the question explicitly asks for "actual" sales specifically or "forecast"/"predicted" sales specifically — a plain question about "sales for store X in month Y" should return whichever row exists (actual or forecast) without excluding either.
+        expr: ISFORECAST
+        data_type: BOOLEAN
+        access_modifier: public_access
+        sample_values:
+          - 'FALSE'
+          - 'TRUE'
+      - name: STORE
+        description: The unique identifier for the store associated with the monthly sales record.
+        expr: STORE
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '140'
+          - '850'
+          - '588'
+    time_dimensions:
+      - name: MONTH
+        description: The first day of each month used to represent the monthly reporting period for sales data.
+        expr: MONTH
+        data_type: TIMESTAMP_NTZ(9)
+        access_modifier: public_access
+        sample_values:
+          - '2015-07-01T00:00:00.000Z'
+          - '2013-12-01T00:00:00.000Z'
+          - '2015-06-01T00:00:00.000Z'
+    facts:
+      - name: AVGCUSTOMERS
+        description: The average number of customers per day for a store in a given month.
+        expr: AVGCUSTOMERS
+        data_type: NUMBER(38,6)
+        access_modifier: public_access
+      - name: PROMODAYS
+        description: The number of days in the month a store ran a promotion.
+        expr: PROMODAYS
+        data_type: NUMBER(13,0)
+        access_modifier: public_access
+      - name: SALES
+        description: The total sales amount recorded for a given month.
+        expr: SALES
+        data_type: FLOAT
+        access_modifier: public_access
+        sample_values:
+          - '167033'
+          - '315450'
+          - '154020'
+      - name: SCHOOLHOLIDAYDAYS
+        description: The number of school holiday days in the month.
+        expr: SCHOOLHOLIDAYDAYS
+        data_type: NUMBER(13,0)
+        access_modifier: public_access
+      - name: STATEHOLIDAYDAYS
+        description: The number of state holiday days in the month.
+        expr: STATEHOLIDAYDAYS
+        data_type: NUMBER(13,0)
+        access_modifier: public_access
+  - name: FACT_STORE_RISK
+    description: The table contains records of risk assessments for individual stores. Each record represents a single store and includes its assigned risk tier along with probability scores across high, medium, and low risk categories.
+    base_table:
+      database: RETAIL_INTELLIGENCE
+      schema: GOLD
+      table: FACT_STORE_RISK
+    dimensions:
+      - name: RISKTIER
+        description: The risk tier classification assigned to a store.
+        expr: RISKTIER
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - High
+          - Low
+          - Medium
+      - name: STORE
+        description: The unique identifier for a store.
+        expr: STORE
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '713'
+          - '1036'
+          - '203'
+    facts:
+      - name: PROB_HIGH
+        description: The probability of a store being classified as high risk.
+        expr: PROB_HIGH
+        data_type: FLOAT
+        access_modifier: public_access
+        sample_values:
+          - '0.6327697143'
+          - '0.3113588529'
+          - '0.01255277863'
+      - name: PROB_LOW
+        description: The probability that a store is classified as low risk.
+        expr: PROB_LOW
+        data_type: FLOAT
+        access_modifier: public_access
+        sample_values:
+          - '0.06564845848'
+          - '0.4580522924'
+          - '0.05191977455'
+      - name: PROB_MEDIUM
+        description: The probability score associated with a medium risk classification for a store.
+        expr: PROB_MEDIUM
+        data_type: FLOAT
+        access_modifier: public_access
+        sample_values:
+          - '0.4221239454'
+          - '0.8433062168'
+          - '0.1458057665'
+    primary_key:
+      columns:
+        - STORE
+  - name: STORE_SUMMARY
+    description: The table contains summary-level records for individual retail store locations. Each record captures store characteristics such as store type, product assortment, and proximity to competition, along with aggregated and forecasted sales figures and a risk classification tier.
+    base_table:
+      database: RETAIL_INTELLIGENCE
+      schema: GOLD
+      table: STORE_SUMMARY
+    dimensions:
+      - name: ASSORTMENT
+        description: The assortment tier or classification assigned to a store.
+        expr: ASSORTMENT
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - c
+          - b
+          - a
+      - name: COMPETITIONDISTANCE
+        description: The distance to the nearest competitor store.
+        expr: COMPETITIONDISTANCE
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '3570'
+          - '570'
+          - '2460'
+      - name: RISKTIER
+        description: The risk tier classification assigned to a store.
+        expr: RISKTIER
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - High
+          - Low
+          - Medium
+      - name: STORE
+        description: The unique identifier assigned to each store.
+        expr: STORE
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '3'
+          - '22'
+          - '223'
+      - name: STORETYPE
+        description: The type or category of the store.
+        expr: STORETYPE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - a
+          - c
+          - d
+    facts:
+      - name: AVG_SALES
+        description: The average sales amount for a store.
+        expr: AVG_SALES
+        data_type: NUMBER(38,6)
+        access_modifier: public_access
+        sample_values:
+          - '5130.520900'
+          - '4598.989744'
+          - '5238.154093'
+      - name: TOTAL_FORECASTED_SALES_12MO
+        description: The total forecasted sales revenue for a store over a 12-month period.
+        expr: TOTAL_FORECASTED_SALES_12MO
+        data_type: FLOAT
+        access_modifier: public_access
+        sample_values:
+          - '3128509.31754015'
+          - '1312238.65667521'
+          - '2320469.56096958'
+    primary_key:
+      columns:
+        - STORE
+relationships:
+  - name: FACT_SALES_DAILY_TO_DIM_STORE
+    left_table: FACT_SALES_DAILY
+    right_table: DIM_STORE
+    relationship_columns:
+      - left_column: STORE
+        right_column: STORE
+    relationship_type: many_to_one
+  - name: FACT_SALES_MONTHLY_TO_DIM_STORE
+    left_table: FACT_SALES_MONTHLY
+    right_table: DIM_STORE
+    relationship_columns:
+      - left_column: STORE
+        right_column: STORE
+    relationship_type: many_to_one
+  - name: FACT_STORE_RISK_TO_DIM_STORE
+    left_table: FACT_STORE_RISK
+    right_table: DIM_STORE
+    relationship_columns:
+      - left_column: STORE
+        right_column: STORE
+    relationship_type: many_to_one

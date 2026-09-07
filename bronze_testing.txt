@@ -1,0 +1,111 @@
+SELECT
+    'train' AS table_name,
+    COUNT(*) AS row_count
+FROM retail_intelligence.bronze.train
+
+UNION ALL
+
+SELECT
+    'test' AS table_name,
+    COUNT(*) AS row_count
+FROM retail_intelligence.bronze.test
+
+UNION ALL
+
+SELECT
+    'store' AS table_name,
+    COUNT(*) AS row_count
+FROM retail_intelligence.bronze.store
+
+UNION ALL
+
+SELECT
+    'sample_submission' AS table_name,
+    COUNT(*) AS row_count
+FROM retail_intelligence.bronze.sample_submission;
+
+
+
+------
+DESCRIBE TABLE retail_intelligence.bronze.train;
+
+---
+
+DESCRIBE TABLE retail_intelligence.bronze.test;
+
+---
+DESCRIBE TABLE retail_intelligence.bronze.store;
+
+--
+DESCRIBE TABLE retail_intelligence.bronze.sample_submission;
+
+
+--- train 
+--1. null check
+SELECT
+    COUNT(*) AS total_rows,
+    SUM(CASE WHEN Store IS NULL THEN 1 ELSE 0 END) AS null_store,
+    SUM(CASE WHEN DayOfWeek IS NULL THEN 1 ELSE 0 END) AS null_dayofweek,
+    SUM(CASE WHEN Date IS NULL THEN 1 ELSE 0 END) AS null_date
+FROM retail_intelligence.bronze.train; 
+
+--2. duplicates
+SELECT
+    Store,
+    Date,
+    COUNT(*) AS duplicate_count
+FROM retail_intelligence.bronze.train
+GROUP BY Store, Date
+HAVING COUNT(*) > 1;
+
+--test 
+--1. null check
+SELECT
+    COUNT(*) AS total_rows,
+    SUM(CASE WHEN Id IS NULL THEN 1 ELSE 0 END) AS null_id,
+    SUM(CASE WHEN Store IS NULL THEN 1 ELSE 0 END) AS null_store,
+    SUM(CASE WHEN DayOfWeek IS NULL THEN 1 ELSE 0 END) AS null_dayofweek
+FROM retail_intelligence.bronze.test;
+
+--2. duplicates
+SELECT
+    Id,
+    COUNT(*) AS duplicate_count
+FROM retail_intelligence.bronze.test
+GROUP BY Id
+HAVING COUNT(*) > 1;
+
+
+--store 
+--1.null checks
+SELECT
+    COUNT(*) AS total_rows,
+    SUM(CASE WHEN Store IS NULL THEN 1 ELSE 0 END) AS null_store,
+    SUM(CASE WHEN StoreType IS NULL THEN 1 ELSE 0 END) AS null_storetype,
+    SUM(CASE WHEN Assortment IS NULL THEN 1 ELSE 0 END) AS null_assortment
+FROM retail_intelligence.bronze.store; 
+
+--2. duplicates 
+SELECT
+    Store,
+    COUNT(*) AS duplicate_count
+FROM retail_intelligence.bronze.store
+GROUP BY Store
+HAVING COUNT(*) > 1;
+
+--store submission  
+--1. null checks
+SELECT
+    COUNT(*) AS total_rows,
+    SUM(CASE WHEN Id IS NULL THEN 1 ELSE 0 END) AS null_id,
+    SUM(CASE WHEN Sales IS NULL THEN 1 ELSE 0 END) AS null_sales,
+    SUM(CASE WHEN _ingested_at IS NULL THEN 1 ELSE 0 END) AS null_ingested_at
+FROM retail_intelligence.bronze.sample_submission;
+
+--2. duplicates 
+SELECT
+    Id,
+    COUNT(*) AS duplicate_count
+FROM retail_intelligence.bronze.sample_submission
+GROUP BY Id
+HAVING COUNT(*) > 1;
